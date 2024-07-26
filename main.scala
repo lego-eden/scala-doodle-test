@@ -11,12 +11,27 @@ import cats.effect.unsafe.implicits.global
 
 @main
 def main(): Unit =
-  val pic =
-    layoutExample()
+  val pictures = Vector(
+    hut
+      .beside(scaledHut)
+      .beside(rotatedHut)
+      .beside(translatedHut)
+      .beside(verticallyReflectedHut),
+    sizeExample,
+    basicExample,
+    layoutExample,
+    overlappingCircles,
+    rollingCirclesMargin,
+    basicStyle,
+    strokeStyle,
+  )
 
-  pic.draw()
+  val frame =
+    Frame.default.withSize(500, 500).withBackground(Color.midnightBlue)
+  val canvas = frame.canvas()
+  pictures(0).drawWithFrame(frame)
 
-def basicExample(): Picture[?] =
+def basicExample: Picture[?] =
   val blackSquare = Picture.rectangle(30, 30).fillColor(Color.black)
   val redSquare = Picture.rectangle(30, 30).fillColor(Color.red)
 
@@ -53,7 +68,7 @@ def basicExample(): Picture[?] =
   // (basicShapes on chessboard).beside(feather).above(sineCurve)
   sineCurve
 
-def layoutExample(): Picture[?] =
+def layoutExample: Picture[?] =
   val debugLayout =
     Picture
       .circle(100)
@@ -79,3 +94,122 @@ def layoutExample(): Picture[?] =
     .above(atAndOriginAt)
     .beside(pentagon)
     .scale(2, 2)
+
+def overlappingCircles: Picture[?] =
+  Picture
+    .circle(100)
+    .strokeColor(Color.purple)
+    .originAt(Landmark(Coordinate.percent(50), Coordinate.percent(-50))).debug
+    .on(
+      Picture
+        .circle(100)
+        .strokeColor(Color.red)
+        .originAt(Landmark(Coordinate.percent(-50), Coordinate.percent(-50))).debug
+    )
+    .on(
+      Picture
+        .circle(100)
+        .strokeColor(Color.blue)
+        .originAt(Landmark(Coordinate.percent(-50), Coordinate.percent(50))).debug
+    )
+    .on(
+      Picture
+        .circle(100)
+        .strokeColor(Color.deepPink)
+        .originAt(Landmark(Coordinate.percent(50), Coordinate.percent(50))).debug
+    ).scale(2, 2)
+
+val circle = Picture.circle(50)
+
+def rollingCirclesMargin: Picture[?] =
+  circle.margin(25).debug
+    .beside(circle.margin(15).debug)
+    .beside(circle.debug)
+    .beside(circle.margin(-15).debug)
+    .beside(circle.margin(-25).debug)
+
+def basicStyle: Picture[?] =
+  Picture
+    .circle(100)
+    .beside(
+      Picture
+        .circle(100)
+        .strokeColor(Color.purple)
+        .strokeWidth(5.0)
+        .fillColor(Color.lavender)
+    )
+
+def strokeStyle =
+  Picture
+    .star(5, 50, 25)
+    .strokeWidth(5.0)
+    .strokeColor(Color.limeGreen)
+    .strokeJoin(Join.bevel)
+    .strokeCap(Cap.round)
+    .strokeDash(Array(9.0, 7.0))
+    .beside(
+      Picture
+        .star(5, 50, 25)
+        .strokeWidth(5.0)
+        .strokeColor(Color.greenYellow)
+        .strokeJoin(Join.miter)
+        .strokeCap(Cap.square)
+        .strokeDash(Array(12.0, 9.0))
+    )
+    .scale(4, 4)
+
+def fillStyle =
+  Picture
+    .square(100)
+    .fillGradient(
+      Gradient.linear(
+        Point(-50, 0),
+        Point(50, 0),
+        List((Color.red, 0.0), (Color.yellow, 1.0)),
+        Gradient.CycleMethod.repeat
+      )
+    )
+    .strokeWidth(5.0)
+    .margin(0.0, 5.0, 0.0, 0.0)
+    .beside(
+      Picture
+        .circle(100)
+        .fillGradient(
+          Gradient.dichromaticRadial(Color.limeGreen, Color.darkBlue, 50)
+        )
+        .strokeWidth(5)
+    )
+    .scale(3, 3)
+
+val hut =
+  Picture
+    .triangle(50, 50)
+    .fillColor(Color.black)
+    .strokeColor(Color.red)
+    .above(Picture.rectangle(50, 50).fillColor(Color.blue))
+
+val rotatedHut = hut.rotate(45.degrees)
+val scaledHut = hut.scale(1.5, 1.5)
+val translatedHut = hut.translate(500, 50)
+val verticallyReflectedHut = hut.verticalReflection
+
+def sizeExample =
+  val circle =
+    Picture
+      .circle(100)
+      .strokeColor(Color.midnightBlue)
+  
+  val circleBoundingBox: Picture[BoundingBox] =
+    circle.boundingBox
+
+  val boundingBox =
+    circleBoundingBox.flatMap(bb => 
+      Picture
+        .roundedRectangle(bb.width, bb.height, 3.0)
+        .strokeColor(Color.hotpink)
+        .strokeWidth(3.0)
+    )
+
+  val picture = circle.on(boundingBox)
+
+  picture.scale(3, 3)
